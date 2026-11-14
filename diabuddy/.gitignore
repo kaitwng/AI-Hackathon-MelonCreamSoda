@@ -1,0 +1,9 @@
+.env
+.env.local
+.dev.vars
+.sites-runtime/
+node_modules/
+
+# Generated Worker bundle
+dist/server/
+dist/.openai/
