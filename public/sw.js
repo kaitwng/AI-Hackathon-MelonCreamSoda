@@ -1,0 +1,6 @@
+const CACHE='glucoquest-game-v5';
+const ASSETS=['/style.css','/app.js','/icon.svg','/manifest.webmanifest','/assets/avatar-atlas.png','/assets/loft.png','/assets/game-room.svg','/assets/ramen.png','/assets/food-pizza.svg','/assets/food-pasta.svg','/assets/food-tacos.svg','/assets/food-rice.svg','/assets/food-salad.svg','/assets/food-sandwich.svg','/assets/food-plate.svg'];
+self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)));self.skipWaiting()});
+self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('glucoquest-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
+// Never cache authenticated pages, generated meal responses, or future device API data.
+self.addEventListener('fetch',event=>{const url=new URL(event.request.url);if(event.request.method!=='GET'||url.origin!==self.location.origin||!ASSETS.includes(url.pathname))return;event.respondWith(fetch(event.request).then(response=>{if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy))}return response}).catch(()=>caches.match(event.request)))});
