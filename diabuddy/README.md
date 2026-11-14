@@ -62,3 +62,13 @@ node tests/worker-build.test.mjs
 ```
 
 Tests use synthetic credentials and mocked upstream responses. They never read live runtime secrets or deliver insulin.
+
+## Parent portal beta
+
+Use the **Portal** selector at the top to set a four-digit parent PIN and open the parent dashboard. Switching to Child locks it again. The salted PIN hash and routine data are stored in this browser's local storage; this is a basic beta barrier, not secure medical-account authentication. Clearing browser data removes them, including the PIN. Parent and child views share data only in the same browser; separate devices do not sync.
+
+Parents configure meal and reminder times according to the child's existing care plan. In-app reminders work only while the page is open; there are no background notifications or caregiver alerts. Check-ins are self-reports of a bolus already taken, not verified doses. Missing records do not establish that insulin was missed. The optional meal log does not calculate dosing or judge timing. Demo controls use fictional in-memory records separated from real records, and reset when demo mode is exited.
+
+Routine support is not medical advice or emergency monitoring. If help is needed, contact a trusted adult directly and follow the existing care plan.
+
+Run the routine model checks with `node tests/routine.test.cjs`.
