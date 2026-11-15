@@ -2,12 +2,13 @@
 (()=>{
 'use strict';
 let current=0,buddyName='Miso',panel=null,spotlight=null,activeTarget=null,previousFocus=null;
-const featureNames=['Your buddy’s world','Choose activity','Learning lessons','Meal studio','Wardrobe & shop','Mini games','Meal reminders','Your coins','Parent portal','Your buddy’s world'];
+const featureNames=['Your buddy’s world','Choose activity','Learning lessons','Meal studio','Your pace. Your plan.','Wardrobe & shop','Mini games','Meal reminders','Your coins','Parent portal','Your buddy’s world'];
 const steps=[
  {page:'home',target:'.scene',title:n=>`Hi, I’m ${n}! Welcome to DiaBuddy!`,text:'This is our little world. We can hang out here and choose an activity together.'},
  {page:'home',target:'#activity',title:()=> 'Choose an activity',text:'Tap here to see what your buddy can do, like reading, dancing, or sleeping.'},
  {page:'home',target:'.bunny-intro',title:()=> 'Learn a little with me',text:'Open our little lessons to explore type 1 diabetes and practice talking about it together.'},
  {page:'home',target:'.meal-card',title:()=> 'Share a pretend meal',text:'Try one of the example meals and see its pixel-art illustration. In this demo, use fictional examples.'},
+ {page:'home',target:'#timer-panel',title:()=> 'Your pace. Your plan.',text:'This timer is optional and never starts automatically. A grown-up can set a time in the parent portal or let you choose a time within their approved range. You can stop the timer anytime.'},
  {page:'wardrobe',target:'[data-page="wardrobe"]',title:()=> 'Dress up your buddy',text:'Explore outfits, accessories, and different looks in the wardrobe and shop.'},
  {page:'games',target:'[data-page="games"]',title:()=> 'Play mini games',text:'Visit the playroom for puzzles and little adventures at your own pace.'},
  {page:'reminders',target:'[data-page="reminders"]',title:()=> 'Gentle reminders',text:'When you’re at a restaurant, a gentle reminder can invite you to take a look at DiaBuddy. Restaurant visits are simulated in this demo.'},
