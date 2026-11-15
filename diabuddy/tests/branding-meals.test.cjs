@@ -38,6 +38,7 @@ function evalJS(code){return vm.runInContext(code,sandbox)}
 function submit(id){return document.querySelector(id).onsubmit({preventDefault(){},target:document.querySelector(id)})}
 (async()=>{
  assert.equal(document.title,'DiaBuddy — a little T1D friend, everyday');assert.equal(document.querySelector('.tagline').textContent,'a little T1D friend, everyday');assert(!document.querySelector('.brand').textContent.includes('DAYBYDAY'));
+ assert.equal(evalJS("activityCatalog.some(a=>['Hungry','Sweating'].includes(a.name))"),false);
  const buttons=[...document.querySelectorAll('nav [data-page]')],icons=buttons.map(b=>b.querySelector('path').getAttribute('d'));assert.equal(new Set(icons).size,buttons.length);for(const b of buttons)assert(b.getAttribute('aria-label'));
  // A glucose label alone must not change the room or harm the companion visually.
  const room=createCanvas(640,400);sandbox.neutralCanvas=room;let poses=[];

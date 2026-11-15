@@ -6,7 +6,7 @@ The branch is based on main commit `1c55562`, which includes the redesigned arca
 
 The previous meal model downloaded an embedding model and selected the nearest food category. The pixel renderer then collapsed several categories into the same burger, pancake or mixed-bowl drawing. The updated meal studio parses a finite English component library instead. It preserves the input name and composes dish silhouettes, proteins, sides, toppings and preparation details. It is not an arbitrary generative AI image service. No image-generation service is configured in the backend.
 
-The original normal activity catalog exposed Hungry and Sweating. Low glucose forced Snacking, which drew sweat drops; the older fallback renderer also shivered and drew sweat. These triggers are removed. Glucose values still display and use personal range labels, while pets keep a neutral, nonjudgmental activity across glucose states. Feeding, water breaks, walking, blinking, sleep, celebration and customization remain.
+The original normal activity catalog exposed Hungry and Sweating. Low glucose forced Snacking, which drew sweat drops; the older fallback renderer also shivered and drew sweat. These triggers are removed. The archived PNG sheets and their `sprites.json` row index still retain the old Hungry/Sweating rows so existing sheet coordinates are not renumbered; the active layered renderer and activity catalog do not use them. Glucose values still display and use personal range labels, while pets keep a neutral, nonjudgmental activity across glucose states. Feeding, water breaks, walking, blinking, sleep, celebration and customization remain.
 
 ## Identity and navigation
 
