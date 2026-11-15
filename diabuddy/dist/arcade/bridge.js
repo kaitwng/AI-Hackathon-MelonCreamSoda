@@ -1,0 +1,15 @@
+(function(root){'use strict';const C=typeof module!=='undefined'?require('./core.js'):root.ArcadeCore;
+const levels=[
+{id:'crossing-1',name:'A straight little crossing',subtitle:'Build one continuous path from the dock to the far bank.',w:7,h:4,start:[0,2],end:[6,2],rocks:[],checkpoints:[],budget:5,turns:false,par:5},
+{id:'crossing-2',name:'Around the willow stones',subtitle:'Corner tiles let you turn around a rock. Every opening must meet its neighbor.',w:7,h:4,start:[0,2],end:[6,2],rocks:[[3,2],[3,3]],checkpoints:[],budget:9,turns:true,par:9},
+{id:'crossing-3',name:'The lantern stop',subtitle:'Visit the lantern island on your way. Your route must include the gold checkpoint.',w:7,h:5,start:[0,3],end:[6,3],rocks:[[3,3],[3,4]],checkpoints:[[3,1]],budget:11,turns:true,par:11},
+{id:'crossing-4',name:'The long way home',subtitle:'Two lantern stops and a stone arch call for a carefully planned route.',w:7,h:5,start:[0,2],end:[6,2],rocks:[[2,2],[4,2]],checkpoints:[[2,0],[4,4]],budget:19,turns:true,par:17}];
+const vectors=[[0,-1],[1,0],[0,1],[-1,0]];
+function create(level){return{level,tiles:{},selected:'straight',turn:1,moves:0,history:[]};}
+function exits(tile){return tile.kind==='corner'?[tile.turn%4,(tile.turn+1)%4]:[tile.turn%4,(tile.turn+2)%4];}
+function place(m,x,y){const l=m.level,k=x+','+y;if(x<=0||x>=l.w-1||y<0||y>=l.h||l.rocks.some(p=>p[0]===x&&p[1]===y))return false;if(!m.tiles[k]&&Object.keys(m.tiles).length>=l.budget)return false;m.history.push(C.copy(m.tiles));m.tiles[k]={kind:m.selected,turn:m.turn};m.moves++;return true;}
+function remove(m,x,y){const k=x+','+y;if(!m.tiles[k])return false;m.history.push(C.copy(m.tiles));delete m.tiles[k];m.moves++;return true;}
+function undo(m){if(!m.history.length)return false;m.tiles=m.history.pop();m.moves++;return true;}
+function route(m){const l=m.level;let cur=[1,l.start[1]],enter=3,path=[l.start],visited=new Set;for(let i=0;i<l.w*l.h;i++){const k=cur.join(',');if(cur[0]===l.end[0]&&cur[1]===l.end[1])return l.checkpoints.every(p=>visited.has(p.join(',')))?[...path,l.end]:null;const tile=m.tiles[k];if(!tile||visited.has(k))return null;const e=exits(tile);if(!e.includes(enter))return null;visited.add(k);path.push([...cur]);const out=e.find(d=>d!==enter),v=vectors[out];cur=[cur[0]+v[0],cur[1]+v[1]];enter=(out+2)%4}return null;}
+const api={id:'bridge',title:'Bridge Adventure',tag:'THE WILLOW CROSSING',instructions:'Select straight or corner planks, rotate their direction, and tap river cells to build a path between the two docks. Bridge openings must connect on both sides. Stay within your plank budget and visit every gold lantern island. Tap Test crossing to send your companion across. A failed test leaves your build intact.',levels,create,exits,place,remove,undo,route,solved:m=>!!route(m),score:m=>Math.max(100,1600-Math.max(0,m.moves-m.level.par)*45-Object.keys(m.tiles).length*10)};if(typeof module!=='undefined')module.exports=api;root.ArcadeGames=root.ArcadeGames||{};root.ArcadeGames.bridge=api;
+})(typeof window!=='undefined'?window:globalThis);
