@@ -18,7 +18,7 @@ function select(key,options,multiple=false){return `<div class="family-options" 
 function family(){return store.families.find(f=>f.id===familyId)}
 function newCode(){const alphabet='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';for(let tries=0;tries<100;tries++){const bytes=crypto.getRandomValues(new Uint8Array(6)),code=Array.from(bytes,n=>alphabet[n%alphabet.length]).join('');if(!store.families.some(f=>f.familyCode===code))return code}throw Error('code_unavailable')}
 function id(){return crypto.randomUUID()}
-function open(){page='start';step=0;stopScan();if(!modal.open)modal.showModal();render()}
+function open(){window.DiaUX?.prepareDialog(modal);page='start';step=0;stopScan();if(!modal.open)modal.showModal();render()}
 function show(next){stopScan();page=next;render()}
 function content(){let title='',body='',actions='',progress='';
  if(page==='start'){title='Meet your DiaBuddy family';body=`<p>Try a pretend family on this browser. Names and email are fictional examples; please don’t enter real personal or health information.</p><div class="family-options"><button data-action="parent-start">👋 Parent setup</button><button data-action="kid-start">🐾 Kid setup</button><button data-action="seed">✨ Open the sample family</button></div><p class="family-hint">Sample code: <strong>MISO01</strong>. Codes and QR links work only in this browser; separate devices don’t share this demo.</p>`;}
