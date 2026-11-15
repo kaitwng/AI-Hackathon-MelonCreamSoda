@@ -108,6 +108,17 @@ Meal descriptions are parsed locally by `meal-ai.js`; `meal-art.js` draws reusab
 
 See [the design and verification notes](BRANDING_AND_MEALS.md) for coverage and remaining browser/device checks.
 
+## Onboarding prototype
+
+New browser users see a welcome dialog and can explore a fictional-data demo; existing users can open **Review setup** in the parent portal. Child questionnaires are gated until a verified consent provider is configured. The prototype has one shared companion, no secure accounts or profile access controls, and the parent PIN is only a basic browser-local barrier. Do not use real personal or health information in the prototype.
+
+The handoff and acknowledgment are not verified parental consent. A reviewed Privacy Policy and Terms, a legally appropriate consent mechanism, secure account and child-profile isolation, and a privacy/security review are required before collecting children's or health data in a production service. Device choices and connection consent are not collected in onboarding; Dexcom is sandbox-only in the existing parent portal, and Tandem is not implemented. Caregiver-configured scheduled reminders are not available in onboarding.
+
+The onboarding plan chooser offers the existing Free prototype only. Premium, Family, payment, account pairing, and subscription management remain disabled until real services and verified configuration are supplied. Parent completion opens the existing local PIN prompt; this is not account authentication. No billing status, verified consent, or family relationship is recorded.
+
+## Fictional family linking demo
+
+Use **Try family linking demo** on the welcome screen or **Open family linking demo** from the demo banner. The seeded family code is `MISO01`. The parent and kid flows, character choices, interest-based looks, mock plan, and family code are stored in `diabuddy-fictional-family-demo-v1` in the current browser’s local storage. Newly generated codes expire after 24 hours; the seeded code does not expire. The QR encodes the code only. Camera scanning depends on browser support and camera permission; entering the code is the fallback. The QR and codes do not connect separate browsers or devices because there is no shared backend. The parent/kid switch and plan are demonstrations, not authentication, real account links, consent, billing, or subscriptions. The demo uses fixed fictional names and email because real child information must remain blocked until a verified consent method is configured. Use no real personal or health information.
 ## Teal home and contextual illustrations
 
 See [TEAL_HOME_AND_EMOTES.md](TEAL_HOME_AND_EMOTES.md) for the restored teal palette, compact home layout, learning presentation, parent-only visual preferences and contextual sprite policy. Contextual poses require recent valid connected G7 data; demo fixtures never replace unavailable readings. They are not treatment instructions and do not affect rewards. Pump corrections remain unavailable without a verified read-only event adapter.

@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {webcrypto} from 'node:crypto';
+import {issuePairing,requestPairing,confirmPairing,authorizeChild,tokenHash} from '../worker/family-domain.mjs';
+if(!globalThis.crypto)globalThis.crypto=webcrypto;
+const invitations=new Map(),links=new Map();const parent={id:'p1',role:'parent'},otherParent={id:'p2',role:'parent'},kid={id:'k1',role:'child'},sibling={id:'k2',role:'child'};
+const repo={async transaction(fn){return fn(this)},async isChildAccount(actor,id){return links.get(id)===actor},async hasCaregiverPermission(actor,id,p){return actor==='p1'&&id==='c1'&&['view','manage_family'].includes(p)},async cancelOpenInvitations(id){for(const x of invitations.values())if(x.childId===id&&['open','pending'].includes(x.state))x.state='canceled'},async insertInvitation(x){invitations.set(x.hash,x)},async lockInvitation(hash){return invitations.get(hash)},async childAccountHasProfile(actor){return [...links.values()].includes(actor)},async profileHasChildAccount(id){return links.has(id)},async setInvitationPending(hash,actor){Object.assign(invitations.get(hash),{state:'pending',requestedBy:actor})},async linkChildAccount(id,actor){links.set(id,actor)},async consumeInvitation(hash){invitations.get(hash).state='consumed'}};
+const rejects=async(p,code)=>assert.rejects(p,e=>e.code===code);
+await rejects(issuePairing(repo,otherParent,'c1',100),'forbidden');await rejects(issuePairing(repo,kid,'c1',100),'forbidden');
+const invite=await issuePairing(repo,parent,'c1',100),hash=await tokenHash(invite.token);assert.equal(invite.token.length,64);assert(!JSON.stringify([...invitations.values()]).includes(invite.token));
+await rejects(requestPairing(repo,kid,invite.token,invite.expiresAt),'invalid_or_expired_invitation');
+await requestPairing(repo,kid,invite.token,101);await rejects(requestPairing(repo,sibling,invite.token,102),'invalid_or_expired_invitation');await rejects(confirmPairing(repo,otherParent,hash,103),'forbidden');await confirmPairing(repo,parent,hash,104);await rejects(confirmPairing(repo,parent,hash,105),'invalid_or_expired_invitation');await authorizeChild(repo,kid,'c1');await rejects(authorizeChild(repo,sibling,'c1'),'forbidden');await rejects(authorizeChild(repo,kid,'c1','manage_family'),'forbidden');
+console.log('PASS family authorization and pairing state transitions');

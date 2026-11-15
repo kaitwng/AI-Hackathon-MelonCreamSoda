@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {unconfiguredConsentProvider,permitsChildData,ConsentScopes as S} from '../worker/consent.mjs';
+const provider=unconfiguredConsentProvider();await assert.rejects(provider.startVerification(),e=>e.code==='consent_not_configured');await assert.rejects(provider.verifyCallback(),e=>e.code==='consent_not_configured');assert.equal((await provider.getStatus()).status,'not_configured');
+const verified={status:'verified',policyVersion:'v1',providerReference:'ref',providerVerified:true};
+assert.equal(permitsChildData({age:12,scope:S.childPersonalData,policyVersion:'v1'}),false);
+assert.equal(permitsChildData({age:null,personalConsent:verified,scope:S.childPersonalData,policyVersion:'v1'}),false);
+assert.equal(permitsChildData({age:12,personalConsent:{...verified,status:'withdrawn'},scope:S.childPersonalData,policyVersion:'v1'}),false);
+assert.equal(permitsChildData({age:12,personalConsent:{...verified,providerVerified:false},scope:S.childPersonalData,policyVersion:'v1'}),false);
+assert.equal(permitsChildData({age:12,personalConsent:verified,scope:S.healthData,policyVersion:'v1'}),false);
+assert.equal(permitsChildData({age:12,personalConsent:verified,healthConsent:verified,scope:S.healthData,policyVersion:'v1'}),true);
+assert.equal(permitsChildData({age:12,personalConsent:verified,scope:S.childPersonalData,policyVersion:'v2'}),false);
+assert.equal(permitsChildData({age:13,scope:S.childPersonalData,policyVersion:'v1'}),true);
+console.log('PASS consent adapter fails closed and separates health permission');
