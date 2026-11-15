@@ -15,10 +15,10 @@ class Fault extends Error {constructor(code,status=400,details={}){super(code);t
 const providerErrors=new Set(['invalid_client','invalid_grant','invalid_request','unauthorized_client','unsupported_grant_type','invalid_scope','access_denied','server_error','temporarily_unavailable']);
 function diagnostic(event,stage,fields={}){
  const record={component:'dexcom_oauth',event,stage};
- for(const key of ['hasCode','hasOAuthError','hasState','hasStateCookie','hasIdentity','stateValidated','storageVerified','hasSessionCookie','connected','networkFailure'])if(typeof fields[key]==='boolean')record[key]=fields[key];
+ for(const key of ['hasCode','hasOAuthError','hasState','hasStateCookie','hasIdentity','stateValidated','storageVerified','hasSessionCookie','connected','networkFailure','hasReading'])if(typeof fields[key]==='boolean')record[key]=fields[key];
  for(const key of ['httpStatus','upstreamStatus'])if(Number.isInteger(fields[key]))record[key]=fields[key];
  if(providerErrors.has(fields.providerError))record.providerError=fields.providerError;
- if(['invalid_origin','sign_in_required','invalid_oauth_state','invalid_oauth_code','setup_required','token_storage_failed','token_exchange_failed','invalid_provider_response','connection_unavailable','reconnect_required','provider_unavailable'].includes(fields.reason))record.reason=fields.reason;
+ if(['invalid_origin','sign_in_required','invalid_oauth_state','invalid_oauth_code','setup_required','token_storage_failed','token_exchange_failed','invalid_provider_response','connection_unavailable','reconnect_required','provider_unavailable','unexpected_provider_redirect'].includes(fields.reason))record.reason=fields.reason;
  if(['OperationError','DataError','TypeError','SyntaxError'].includes(fields.errorName))record.errorName=fields.errorName;
  try{console[event.endsWith('_failed')||event==='oauth_state_mismatch'||event==='missing_session'?'error':'info'](JSON.stringify(record))}catch{}
 }
@@ -37,10 +37,18 @@ async function load(env,path){const stored=await env.BUCKET.get(path);if(!stored
 async function put(env,path,value,etag){return env.BUCKET.put(path,await seal(env,path,value),{httpMetadata:{contentType:'application/octet-stream'},...(etag?{onlyIf:{etagMatches:etag}}:{})})}
 async function identify(req){const user=req.headers.get('oai-authenticated-user-id');if(!user)throw new Fault('sign_in_required',401);return hash(user)}
 async function session(req,env,user){const id=cookies(req)[sidCookie];if(!/^[a-f0-9]{64}$/.test(id||''))return null;const path='dexcom/session/'+user+'/'+await hash(id),stored=await load(env,path);if(!stored)return null;if(stored.value.expiresAt<Date.now()){await env.BUCKET.delete(path);return null}return {...stored,path}}
-async function provider(path,options={}){try{return await fetch(API+path,{...options,redirect:'error',signal:AbortSignal.timeout(12000)})}catch{throw new Fault('provider_unavailable',503,{networkFailure:true})}}
+async function provider(path,options={}){
+ try{
+  // Workers supports manual/follow, not error. Never forward OAuth credentials on redirects.
+  const response=await fetch(API+path,{...options,redirect:'manual',signal:AbortSignal.timeout(12000)});
+  if(response.status>=300&&response.status<400)throw new Fault('unexpected_provider_redirect',502,{upstreamStatus:response.status});
+  return response;
+ }catch(error){if(error instanceof Fault)throw error;throw new Fault('provider_unavailable',503,{networkFailure:true})}
+}
 async function token(env,params){
  const callback=params.grant_type==='authorization_code';
  const response=await provider('/v3/oauth2/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({client_id:env.DEXCOM_CLIENT_ID,client_secret:env.DEXCOM_CLIENT_SECRET,...params})});
+ if(callback)diagnostic('token_response_received','token_exchange',{upstreamStatus:response.status});
  let data;try{data=await response.json()}catch{throw new Fault('invalid_provider_response',502,{upstreamStatus:response.status})}
  if(!response.ok)throw new Fault(callback?'token_exchange_failed':response.status===400||response.status===401?'reconnect_required':'provider_unavailable',callback?502:response.status===400||response.status===401?401:503,{upstreamStatus:response.status,providerError:providerErrors.has(data?.error)?data.error:undefined});
  if(typeof data.access_token!=='string'||typeof data.refresh_token!=='string'||!Number.isFinite(data.expires_in)||data.expires_in<=0)throw new Fault('invalid_provider_response',502,{upstreamStatus:response.status});
@@ -50,7 +58,7 @@ async function token(env,params){
 async function refresh(env,s){if(s.value.lockUntil>Date.now())throw new Fault('refresh_in_progress',503);const locked={...s.value,lockUntil:Date.now()+30000},lease=await put(env,s.path,locked,s.etag);if(!lease)throw new Fault('refresh_in_progress',503);try{const next={...locked,...await token(env,{grant_type:'refresh_token',refresh_token:locked.refresh}),lockUntil:0};const saved=await put(env,s.path,next,lease.etag);if(!saved)throw new Fault('reconnect_required',401);return{...s,value:next,etag:saved.etag}}catch(e){
 // Never replay a possibly consumed refresh token after an uncertain exchange.
 await env.BUCKET.delete(s.path);throw e instanceof Fault?e:new Fault('reconnect_required',401)}}
-async function dexGet(env,s,path){if(s.value.tokenExpiresAt<Date.now()+60000)s=await refresh(env,s);let response=await provider(path,{headers:{Authorization:'Bearer '+s.value.access}});if(response.status===401){s=await refresh(env,s);response=await provider(path,{headers:{Authorization:'Bearer '+s.value.access}})}if(!response.ok){if(response.status===401||response.status===403){await env.BUCKET.delete(s.path);throw new Fault('reconnect_required',401)}throw new Fault(response.status===429?'rate_limited':'provider_unavailable',503)}let data;try{data=await response.json()}catch{throw new Fault('invalid_provider_response',502)}return {data,session:s}}
+async function dexGet(env,s,path){if(s.value.tokenExpiresAt<Date.now()+60000)s=await refresh(env,s);let response=await provider(path,{headers:{Authorization:'Bearer '+s.value.access}});if(response.status===401){s=await refresh(env,s);response=await provider(path,{headers:{Authorization:'Bearer '+s.value.access}})}if(!response.ok){if(response.status===401||response.status===403){await env.BUCKET.delete(s.path);throw new Fault('reconnect_required',401)}throw new Fault(response.status===429?'rate_limited':'provider_unavailable',503)}let data;try{data=await response.json()}catch{throw new Fault('invalid_provider_response',502)}return {data,session:s,upstreamStatus:response.status}}
 export function utc(s){if(typeof s!=='string')return NaN;return Date.parse(/[zZ]$|[+-]\d\d:\d\d$/.test(s)?s:s+'Z')}
 export function latestG7(data,now=Date.now()){if(!Array.isArray(data?.records))throw new Fault('invalid_provider_response',502);const rows=data.records.filter(r=>r.transmitterGeneration==='g7'||r.transmitterGenerationVariant==='g7'||r.transmitterGenerationVariant==='g715day').map(r=>({...r,time:utc(r.systemTime)})).filter(r=>Number.isFinite(r.time)&&r.time<=now+60000).sort((a,b)=>b.time-a.time);const r=rows[0];if(!r)return null;const numeric=Number.isFinite(r.value)&&r.unit==='mg/dL'&&r.value>=39&&r.value<=401;const usable=numeric&&!['notComputable','outOfRange','unknown'].includes(r.status);return{value:usable?r.value:null,displayValue:usable?(r.value===39?'LOW':r.value===401?'HIGH':String(r.value)):'Unavailable',unit:'mg/dL',timestamp:new Date(r.time).toISOString(),trend:typeof r.trend==='string'?r.trend:'unknown',status:r.status||null,stale:now-r.time>STALE,future:r.time>now,simulated:true,sensor:'G7'}}
 function dateParam(ms){return new Date(ms).toISOString().slice(0,19)}
@@ -90,6 +98,7 @@ if(route==='/api/dexcom/disconnect'&&req.method==='POST'){if(req.headers.get('or
 if(route==='/api/dexcom/egvs'&&req.method==='GET'){let s=await session(req,env,user);if(!s)throw new Fault('reconnect_required',401);const now=Date.now();if(s.value.cachedAt&&now-s.value.cachedAt<60000)return json({...s.value.cached,reading:s.value.cached.reading?{...s.value.cached.reading,stale:now-utc(s.value.cached.reading.timestamp)>STALE}:null});let result=await dexGet(env,s,'/v3/users/self/egvs?'+new URLSearchParams({startDate:dateParam(now-86400000),endDate:dateParam(now+1000)}));s=result.session;let reading=latestG7(result.data,now),historical=false;
 // Sandbox accounts can contain historical data only. Never rewrite its timestamps.
 if(!reading){const range=await dexGet(env,s,'/v3/users/self/dataRange');s=range.session;const end=utc(range.data?.egvs?.end?.systemTime);if(Number.isFinite(end)&&end<now){result=await dexGet(env,s,'/v3/users/self/egvs?'+new URLSearchParams({startDate:dateParam(end-86400000),endDate:dateParam(end+1000)}));s=result.session;reading=latestG7(result.data,now);historical=!!reading}}
+diagnostic('egv_fetch_completed','egv_fetch',{hasReading:!!reading,upstreamStatus:result.upstreamStatus});
 const body={connected:true,simulated:true,environment:'sandbox',reading,historical,staleAfterMinutes:15,fetchedAt:new Date(now).toISOString(),message:reading?null:'No simulated G7 readings found. Connect again and select Sandbox User - G7.'};await put(env,s.path,{...s.value,cached:body,cachedAt:now},s.etag);return json(body)}
 return json({error:'not_found'},404)
 }catch(error){const code=error instanceof Fault?error.code:'connection_unavailable',status=error instanceof Fault?error.status:503;
