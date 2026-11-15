@@ -2,7 +2,7 @@
 (()=>{
 'use strict';
 let current=0,buddyName='Miso',panel=null,spotlight=null,activeTarget=null,previousFocus=null;
-const featureNames=['Your buddy’s world','Choose activity','Learning lessons','Meal studio','Wardrobe & shop','Mini games','Meal reminders','Journal','Preferences & devices','Your coins','Parent portal','Your buddy’s world'];
+const featureNames=['Your buddy’s world','Choose activity','Learning lessons','Meal studio','Wardrobe & shop','Mini games','Meal reminders','Your coins','Parent portal','Your buddy’s world'];
 const steps=[
  {page:'home',target:'.scene',title:n=>`Hi, I’m ${n}! Welcome to DiaBuddy!`,text:'This is our little world. We can hang out here and choose an activity together.'},
  {page:'home',target:'#activity',title:()=> 'Choose an activity',text:'Tap here to see what your buddy can do, like reading, dancing, or sleeping.'},
@@ -11,8 +11,6 @@ const steps=[
  {page:'wardrobe',target:'[data-page="wardrobe"]',title:()=> 'Dress up your buddy',text:'Explore outfits, accessories, and different looks in the wardrobe and shop.'},
  {page:'games',target:'[data-page="games"]',title:()=> 'Play mini games',text:'Visit the playroom for puzzles and little adventures at your own pace.'},
  {page:'reminders',target:'[data-page="reminders"]',title:()=> 'Gentle reminders',text:'When you’re at a restaurant, a gentle reminder can invite you to take a look at DiaBuddy. Restaurant visits are simulated in this demo.'},
- {page:'journal',target:'[data-page="journal"]',title:()=> 'Your journal',text:'The journal is a space for thoughts and feelings.'},
- {page:'settings',target:'[data-page="settings"]',title:()=> 'Preferences and devices',text:'A grown-up can explore settings and device information.'},
  {page:'home',target:'.bank',title:()=> 'Collect coins',text:'Coins are for little in-app rewards. Explore, learn, and play at your own pace.'},
  {page:'home',target:'#portal-select',title:()=> 'A space for grown-ups',text:'A grown-up can explore the parent view. The demo toggle is not a real account or secure family link.'},
  {page:'home',target:'.scene',title:()=> 'Ready to explore?',text:'That’s our little tour! We can always come back to My little world.'}
