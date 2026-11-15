@@ -32,7 +32,8 @@ Object.defineProperty(window.HTMLSelectElement.prototype,'value',{get(){return t
 window.matchMedia=()=>({matches:false});window.AudioContext=function(){};const modal=document.querySelector('#modal');modal.showModal=()=>{modal.open=true};modal.close=()=>{modal.open=false;modal.dispatchEvent(new window.Event('close'))};
 const stored=new Map([['mellow-v1',JSON.stringify({coins:420,owned:['bunny','cat'],equipped:{Characters:'cat'},entries:[{text:'Earlier journal page',date:'Earlier'}],arcadeProgress:{block:{best:{0:123}}},sharedMeal:{name:'Saved mystery dish',food:'custom'}})]]);
 class FormData{constructor(form){this.form=form}get(key){return this.form.querySelector(`[name="${key}"]`)?.value??null}}
-const sandbox={window,document,console,crypto:crypto.webcrypto,TextEncoder,URLSearchParams,Date,FormData,localStorage:{getItem:k=>stored.get(k)||null,setItem:(k,v)=>stored.set(k,v)},setInterval:()=>0,setTimeout,clearTimeout,requestAnimationFrame:()=>1,cancelAnimationFrame:()=>{},performance:{now:()=>0}};vm.createContext(sandbox);
+window.diaExistingUser=true; // Inline bootstrap sees the existing saved profile in a browser.
+const sandbox={window,document,MutationObserver:window.MutationObserver,console,crypto:crypto.webcrypto,TextEncoder,URLSearchParams,Date,FormData,localStorage:{getItem:k=>stored.get(k)||null,setItem:(k,v)=>stored.set(k,v)},setInterval:()=>0,setTimeout,clearTimeout,requestAnimationFrame:()=>1,cancelAnimationFrame:()=>{},performance:{now:()=>0}};vm.createContext(sandbox);
 for(const tag of document.querySelectorAll('script[src]'))vm.runInContext(fs.readFileSync(path.join(root,tag.getAttribute('src')),'utf8'),sandbox,{filename:tag.getAttribute('src')});
 function evalJS(code){return vm.runInContext(code,sandbox)}
 function submit(id){return document.querySelector(id).onsubmit({preventDefault(){},target:document.querySelector(id)})}

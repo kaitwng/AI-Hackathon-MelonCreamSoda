@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {webcrypto,createHmac} from 'node:crypto';
+import {verifyStripeWebhook} from '../worker/stripe-signature.mjs';
+if(!globalThis.crypto)globalThis.crypto=webcrypto;
+const secret='whsec_example',body=new TextEncoder().encode('{"type":"test"}'),t=1700000000;
+const sig=createHmac('sha256',secret).update(`${t}.`).update(body).digest('hex');
+assert.equal(await verifyStripeWebhook(body,`t=${t},v1=${sig}`,secret,t),true);
+assert.equal(await verifyStripeWebhook(body,`t=${t},v1=${sig}`,secret,t+301),false);
+assert.equal(await verifyStripeWebhook(new TextEncoder().encode('{}'),`t=${t},v1=${sig}`,secret,t),false);
+assert.equal(await verifyStripeWebhook(body,`t=${t},t=${t},v1=${sig}`,secret,t),false);
+assert.equal(await verifyStripeWebhook(body,`t=${t},v1=${'0'.repeat(64)}`,secret,t),false);
+console.log('PASS Stripe signature verification');

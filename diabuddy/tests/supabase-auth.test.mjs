@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {authenticateSupabase} from '../worker/supabase-auth.mjs';
+const env={SUPABASE_URL:'https://example.supabase.co',SUPABASE_PUBLISHABLE_KEY:'test'};
+const req=auth=>new Request('https://app.example/api',{headers:auth?{Authorization:auth}:{}});
+assert.equal((await authenticateSupabase(req(),env)).error,'unauthenticated');
+assert.equal((await authenticateSupabase(req('Bearer abc.def'),{})).error,'auth_not_configured');
+assert.equal((await authenticateSupabase(req('Bearer abc.def'),env,async()=>new Response('',{status:401}))).status,401);
+assert.equal((await authenticateSupabase(req('Bearer abc.def'),env,async()=>{throw Error('offline')})).status,503);
+let got;const result=await authenticateSupabase(req('Bearer abc.def'),env,async(url,options)=>{got={url:String(url),options};return Response.json({id:'95b53771-1618-4980-9719-94bd89eecf70',user_metadata:{role:'parent'}})});
+assert.equal(result.userId,'95b53771-1618-4980-9719-94bd89eecf70');assert.equal(result.role,undefined);assert.equal(got.url,'https://example.supabase.co/auth/v1/user');assert.equal(got.options.headers.Authorization,'Bearer abc.def');
+console.log('PASS Supabase authentication boundary');

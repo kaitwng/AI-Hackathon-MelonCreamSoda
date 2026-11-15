@@ -2,7 +2,7 @@ const $=s=>document.querySelector(s), content=$('#content'), modal=$('#modal');
 let state;try{state=JSON.parse(localStorage.getItem('mellow-v1'))}catch{}state={coins:240,owned:[],equipped:{},entries:[],timer:null,claimed:[],thresholds:{low:70,high:180},mealEvents:[],usedMealEvents:[],sharedMeal:null,characterName:'Miso',gameWins:[],...state};let page='home',category='All',glucose='range',mood='Okay',activity='A little of everything',sound=false;
 state.thresholds={low:70,high:180,...state.thresholds};state.owned=[...new Set(['pastel','bunny','cozy','shirt','bow','cgm',...state.owned])];state.entries=state.entries.map((e,i)=>({id:'legacy-'+i,...e}));state.equipped.Characters=state.equipped.Characters||'bunny';let reading=112;let activityStarted=Date.now();
 const classify=(v,t=state.thresholds)=>v<=t.low?'low':v>=t.high?'high':'range';
-const save=()=>{localStorage.setItem('mellow-v1',JSON.stringify(state));$('#coins').textContent=state.coins};
+const save=()=>{if(!window.DiaFamilyDemoActive)localStorage.setItem('mellow-v1',JSON.stringify(state));$('#coins').textContent=state.coins};
 const escapeHTML=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const items=[
 {id:'cozy',name:'The colorful cozy corner',type:'Rooms',icon:'🌷',price:0,desc:'Lavender walls, golden light, leafy plants, and a rainbow rug.'},

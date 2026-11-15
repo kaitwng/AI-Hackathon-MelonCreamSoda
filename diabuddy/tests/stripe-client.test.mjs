@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {createCheckoutSession,createBillingPortalSession} from '../worker/stripe-client.mjs';
+const env={APP_ORIGIN:'https://example.org',STRIPE_SECRET_KEY:'sk_test_abc123',STRIPE_PRICE_PLUS_MONTHLY:'price_123'};
+let calls=[];const fake=async(url,options)=>{calls.push({url,options});return Response.json({url:url.endsWith('checkout/sessions')?'https://checkout.stripe.com/c/pay_test':'https://billing.stripe.com/p/session'})};
+await assert.rejects(createCheckoutSession({},{}),e=>e.code==='billing_not_configured');
+await assert.rejects(createCheckoutSession(env,{customerId:'cus_123',plan:'family_monthly',idempotencyKey:'0123456789abcdef'},fake),e=>e.code==='billing_not_configured');
+const result=await createCheckoutSession(env,{customerId:'cus_123',plan:'plus_monthly',idempotencyKey:'0123456789abcdef'},fake);
+assert.match(result.url,/checkout\.stripe\.com/);assert.equal(calls[0].options.headers['Idempotency-Key'],'0123456789abcdef');assert.equal(calls[0].options.body.get('line_items[0][price]'),'price_123');assert.equal(calls[0].options.body.get('mode'),'subscription');
+assert.match((await createBillingPortalSession(env,{customerId:'cus_123'},fake)).url,/billing\.stripe\.com/);
+await assert.rejects(createBillingPortalSession(env,{customerId:'cus_123'},async()=>Response.json({url:'https://evil.example/'})),e=>e.code==='provider_error');
+console.log('PASS Stripe transport configuration and redirect checks');
