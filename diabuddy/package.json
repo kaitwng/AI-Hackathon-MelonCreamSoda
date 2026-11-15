@@ -1,0 +1,12 @@
+{
+  "name": "diabuddy-development",
+  "private": true,
+  "engines": {"node": ">=22"},
+  "scripts": {
+    "build": "node scripts/build-worker.mjs",
+    "test": "node scripts/build-worker.mjs && node scripts/test-all.mjs",
+    "test:arcade": "node tests/arcade-block.test.cjs && node tests/arcade-bridge.test.cjs && node tests/arcade-sort.test.cjs && node tests/arcade-ui.test.cjs",
+    "art:arcade": "node scripts/render-arcade.cjs"
+  },
+  "devDependencies": {"@napi-rs/canvas":"0.1.80","linkedom":"0.18.12"}
+}

@@ -7,3 +7,6 @@ node_modules/
 # Generated Worker bundle
 dist/server/
 dist/.openai/
+
+# Reproducible offscreen render checks
+test-results/
