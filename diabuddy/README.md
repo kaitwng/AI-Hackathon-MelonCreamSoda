@@ -63,11 +63,19 @@ node tests/worker-build.test.mjs
 
 Tests use synthetic credentials and mocked upstream responses. They never read live runtime secrets or deliver insulin.
 
+## Family rewards
+
+Parents can add, edit, or remove family rewards such as choosing dinner, with a coin cost and optional note. In the shop, a child can request a reward: coins are reserved immediately, then spent on parent approval or returned if the parent chooses “Not now.” Pending requests retain their original name and cost even if a reward is edited or removed. Rewards, requests, and coins are saved only in the same browser; no caregiver notification or device sync is sent. These saved rewards remain separate from the fictional check-in demo.
+
+## Family Insights preview
+
+The parent portal includes a fictional, clearly labeled Premium concept preview. It does not analyze journal entries, bolus records, or timer history. No subscription or payment is available. Missing records do not establish whether insulin was missed, and the sample does not infer a cause.
+
 ## Parent portal beta
 
 Use the **Portal** selector at the top to set a four-digit parent PIN and open the parent dashboard. Switching to Child locks it again. The salted PIN hash and routine data are stored in this browser's local storage; this is a basic beta barrier, not secure medical-account authentication. Clearing browser data removes them, including the PIN. Parent and child views share data only in the same browser; separate devices do not sync.
 
-Parents configure meal and reminder times according to the child's existing care plan. In-app reminders work only while the page is open; there are no background notifications or caregiver alerts. Check-ins are self-reports of a bolus already taken, not verified doses. Missing records do not establish that insulin was missed. The optional meal log does not calculate dosing or judge timing. Demo controls use fictional in-memory records separated from real records, and reset when demo mode is exited.
+The parent portal no longer offers meal and reminder schedule settings; previously saved schedules remain in browser storage. Scheduled check-in reminders work only while the page is open; there are no background notifications or caregiver alerts. Check-ins are self-reports of a bolus already taken, not verified doses. Missing records do not establish that insulin was missed. The optional meal log does not calculate dosing or judge timing. Demo controls use fictional in-memory records separated from real records, and reset when demo mode is exited.
 
 Routine support is not medical advice or emergency monitoring. If help is needed, contact a trusted adult directly and follow the existing care plan.
 
