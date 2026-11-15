@@ -1,23 +1,19 @@
 const activityCatalog=[
-{name:'A little of everything',icon:'✧',detail:'Miso wanders, reads, creates, and takes little breaks.'},
+{name:'A little of everything',icon:'✧',detail:'Miso wanders, reads, dances, and takes little breaks.'},
 {name:'Walking around',icon:'👣',detail:'Exploring the room, one little paw at a time.'},
 {name:'Reading',icon:'📖',detail:'Turning the pages of a favorite story.'},
-{name:'Knitting',icon:'🧶',detail:'Making a tiny scarf, stitch by stitch.'},
-{name:'Watering plants',icon:'🌿',detail:'A sprinkle for the plants and a moment of calm.'},
 {name:'Drinking water',icon:'💧',detail:'Lifting a glass for a refreshing sip.'},
 {name:'Dancing',icon:'♫',detail:'Little steps, big ears, and a whole lot of joy.'},
-{name:'Stretching',icon:'☀',detail:'Reaching up and stretching those little paws.'},
-{name:'Painting',icon:'🎨',detail:'Adding a splash of color to a little masterpiece.'},
 {name:'Sleeping',icon:'☾',detail:'Curled up on the sofa for a cozy nap.'},
 {name:'Eating together',icon:'🍽',detail:'Sharing the meal you chose.'}
 ];
-const routine=['Walking around','Reading','Walking around','Watering plants','Knitting','Drinking water','Dancing','Painting','Stretching','Sleeping'];
+const routine=['Walking around','Reading','Walking around','Drinking water','Dancing','Sleeping'];
 function currentActivity(){const g=petGlucose();if(g==='low')return'Snacking';if(g==='high')return'Drinking water';if(activity==='A little of everything')return routine[Math.floor((Date.now()-activityStarted)/13000)%routine.length];if(activity==='Eating together'&&!state.sharedMeal)return'Reading';return activity}
 function activityButtons(){return activityCatalog.filter(a=>!['A little of everything','Eating together'].includes(a.name)).map(a=>`<button data-act="${a.name}" title="${a.detail}" aria-label="${a.name}">${a.icon}<span>${a.name}</span></button>`).join('')}
 function setActivity(name){if(!activityCatalog.some(a=>a.name===name))return;if(name==='Eating together'&&!state.sharedMeal){toast('Name your meal below, then share it with Miso.');return}activity=name;activityStarted=Date.now();if(page==='home'){drawRoom();document.querySelectorAll('[data-act]').forEach(b=>b.classList.toggle('selected',b.dataset.act===name))}}
 function updateActionCaption(a){const meta=activityCatalog.find(x=>x.name===a)||{icon:'🍪',detail:'A snack break. Follow your personal low-glucose care plan.'};const title=$('#action-title'),detail=$('#action-detail'),icon=$('#action-icon');if(title)title.textContent=a==='Eating together'?'Eating '+state.sharedMeal.name:a==='Snacking'?'Miso is having a snack':'Miso is '+a.toLowerCase();if($('#room')?._misoPose?.travel&&a!=='Walking around'&&title)title.textContent='Walking over to '+(a==='Eating together'?'share your meal':a.toLowerCase());if(detail)detail.textContent=petGlucose()==='high'?'A water break · Follow your personal care plan.':a==='Eating together'?'Taking little bites, just like you.':meta.detail;if(icon)icon.textContent=meta.icon;if(title)title.textContent=title.textContent.replaceAll('Miso',state.characterName)}
 function openActivities(){showModal(`<div class="eyebrow">MISO’S EVERYDAY MOMENTS</div><h2>A whole little life.</h2><p>Pick an activity, or let Miso follow a little routine.</p><div class="activity-picker">${activityCatalog.map(a=>`<button class="${activity===a.name?'selected':''}" data-act="${a.name}"><b>${a.icon}</b><span>${a.name}<small>${a.detail}</small></span></button>`).join('')}</div>`)}
-function bindWorldInteractions(){const canvas=$('#room');canvas.onclick=e=>{const rect=canvas.getBoundingClientRect(),x=(e.clientX-rect.left)*480/rect.width,y=(e.clientY-rect.top)*310/rect.height;if(x<115&&y>155)setActivity('Watering plants');else if(x>350&&y>180)setActivity(state.sharedMeal?'Eating together':'Drinking water');else if(x>325&&y<175)setActivity('Reading');else if(x>150&&x<350&&y>170)setActivity('Sleeping');else setActivity('Walking around')};}
+function bindWorldInteractions(){const canvas=$('#room');canvas.onclick=e=>{const rect=canvas.getBoundingClientRect(),x=(e.clientX-rect.left)*480/rect.width,y=(e.clientY-rect.top)*310/rect.height;if(x<115&&y>155)setActivity('Walking around');else if(x>350&&y>180)setActivity(state.sharedMeal?'Eating together':'Drinking water');else if(x>325&&y<175)setActivity('Reading');else if(x>150&&x<350&&y>170)setActivity('Sleeping');else setActivity('Walking around')};}
 function isEligibleMealEvent(event,now=Date.now()){
 // No live t:slim adapter is installed. Only explicit demo fixtures can be eligible here.
 return !!event&&typeof event.id==='string'&&event.id.length>0&&event.source==='demo'&&event.kind==='meal_bolus'&&event.bolusDelivered===true&&Number.isFinite(event.carbs)&&event.carbs>0&&Number.isFinite(event.occurredAt)&&Number.isFinite(event.receivedAt)&&now-event.occurredAt>=0&&now-event.occurredAt<=600000&&now-event.receivedAt>=0&&now-event.receivedAt<=600000&&!state.usedMealEvents.includes(event.id);
