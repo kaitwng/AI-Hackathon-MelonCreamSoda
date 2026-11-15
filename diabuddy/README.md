@@ -1,4 +1,4 @@
-# DiaBuddy / DAYBYDAY
+# DiaBuddy
 
 A cozy pixel-art diabetes companion prototype with layered characters, customization, meal sharing, journaling, mini games, and an official Dexcom v3 sandbox OAuth backend.
 
@@ -96,3 +96,12 @@ npm run art:arcade
 ```
 
 The last command renders gameplay to ignored `test-results/` PNGs. See [ARCADE_DESIGN.md](ARCADE_DESIGN.md) for mechanics, controls, validation and verification limits. GitHub commits do not deploy the live Site automatically.
+
+
+## DiaBuddy meadow identity and local meal studio
+
+The `feat/diabuddy-branding-and-meals` update adds `theme.css` for the shared meadow/sky palette, an original pixel SVG logo, unique SVG navigation icons and browser-local journal/preferences routes in `identity.js`. Old storage keys, device protocol headers, OAuth callback URLs and backend identifiers remain unchanged.
+
+Meal descriptions are parsed locally by `meal-ai.js`; `meal-art.js` draws reusable original components for both previews and pet feeding. There is no AI image generation endpoint or image-generation credential configured in this project. This replaces the former nearest-preset embedding matcher and model download with a finite, transparent English component library. Unsupported details remain named and visibly marked partial; unknown dishes show an explicitly generic plate. Manual simple illustrations are optional and labeled as choices, with the original description kept. No nutrition or insulin estimates are produced.
+
+See [the design and verification notes](BRANDING_AND_MEALS.md) for coverage and remaining browser/device checks.
