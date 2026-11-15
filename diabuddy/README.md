@@ -1,6 +1,6 @@
 # DiaBuddy
 
-A cozy pixel-art diabetes companion prototype with layered characters, customization, meal sharing, journaling, mini games, and an official Dexcom v3 sandbox OAuth backend.
+A cozy pixel-art diabetes companion prototype with layered characters, customization, meal sharing, optional family meal routines, mini games, and an official Dexcom v3 sandbox OAuth backend.
 
 ## Project layout
 
@@ -45,7 +45,9 @@ A GitHub merge does not automatically publish to the existing ChatGPT Site. Coor
 
 Never commit actual credentials, session-encryption keys, OAuth tokens, personal health data, or local environment files. The public repository contains names and placeholder values only. Runtime values belong in the hosting platform's secret configuration.
 
-The Dexcom integration is sandbox-only. Data is simulated, stale data is labeled, and readings affect visual animations only. They never determine coins or game progression. Tandem remains unconnected; the timer's pump events are explicit demo fixtures. Premium payments are disabled.
+The Dexcom integration is sandbox-only. Data is simulated, stale data is labeled, and readings select contextual illustrations and interrupt optional waiting routines in the parent-configured low range. They never determine coins or game progression. Tandem remains unconnected: device-verified timer offers are unavailable. A parent may explicitly enable a labeled manual family routine. Timer completion earns no coins. Premium payments are disabled.
+
+See [Waiting for Meal](docs/waiting-for-meal.md) for controls, integration requirements, verification, and limitations. Journal and Preferences & devices tabs are removed; saved entries are retained and device connection controls remain in the parent portal.
 
 ## Source version
 
