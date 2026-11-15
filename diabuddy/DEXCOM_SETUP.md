@@ -31,3 +31,38 @@ Expired cookies and sessions are rejected. Explicit Disconnect deletes the sessi
 
 ## Build / checks
 Run `node scripts/build-worker.mjs` from the checkout after editing frontend or Worker source. Source assets remain in `dist/`; the build excludes `dist/server` and `dist/.openai` from embedding. No Node dependency or framework migration is required. OAuth tests use a mocked provider and R2 conditional-storage implementation. Browser consent with real credentials remains a manual acceptance check.
+
+## Per-Site origin configuration
+
+`DEXCOM_APP_ORIGIN` selects one exact trusted HTTPS deployment origin. The supported origins are the original `https://mellow-pixel-companion.delicatecurio4.chatgpt.site` and the current `https://diabuddy-arcade-review.delicatecurio4.chatgpt.site`. When omitted, the original origin remains the default for backward compatibility. An explicitly invalid/unknown origin fails closed. Requests to the other origin are rejected for that deployment; forwarded headers cannot change this check. There are no wildcard CORS permissions.
+
+The Worker uses the selected origin for request validation, the authorization redirect URI, the token exchange redirect URI and disconnect CSRF validation. Set the current Site's `DEXCOM_APP_ORIGIN` in Sites runtime settings, preserve the three existing Dexcom secrets, and republish to apply the runtime revision. It is a public configuration value, though it may be marked Secret in Sites.
+
+For the current domain, register this exact callback in the Dexcom Developer Portal:
+
+```
+https://diabuddy-arcade-review.delicatecurio4.chatgpt.site/api/auth/dexcom/callback
+```
+
+The former callback does not set cookies on the new host. Authorize again on the new Site; existing sessions do not migrate between Sites. Do not copy browser cookies or OAuth tokens. A rotated session encryption key also requires reauthorization.
+
+`/api/dexcom/configuration` reports only binding presence/format/storage checks and the public origin/callback. `/api/dexcom/status` still requires a signed-in Site visitor. A service bypass token grants platform access but does not impersonate a signed-in user, so a service-only status check may return `sign_in_required` (401). That is distinct from the former application-level `invalid_origin` (403).
+
+The backend implements actual server-side OAuth and refresh rotation against `https://sandbox-api.dexcom.com/v3/oauth2/login` and `/v3/oauth2/token`, then retrieves `/v3/users/self/egvs`. `simulated: true` labels Dexcom sandbox data; it does not mean the OAuth routes are mock functions. Completing authorization and retrieving readings still require browser consent and a registered callback matching the current origin.
+
+## Safe OAuth callback diagnostics
+
+Callback logs emit fixed event names: `oauth_state_mismatch`, `missing_session`, `token_exchange_failed`, `token_storage_failed`, `callback_redirect_failed`, and `connection_status_failed`. Progress events distinguish receipt, state validation, a successful token exchange, encrypted-storage read-back, and redirect completion. Fields are limited to stage names, booleans, HTTP statuses and allowlisted OAuth error categories. Request URLs/queries, cookie values, identities, arbitrary exception text, codes, client credentials and tokens are never included by the diagnostic logger. Do not add raw request or provider-response logging.
+
+The frontend preserves the specific callback error, opens Preferences & devices after return, and still navigates the browser to `/api/auth/dexcom/login`. A signed-in Site visitor is required; the local Child/Parent selector and parent PIN do not establish that identity. The renamed Demo tools button is independent of the real sandbox OAuth backend. A callback without a Site identity now clearly requests sign-in instead of reporting a generic connection failure.
+
+Encrypted session creation now checks the storage write and reads/decrypts it back before emitting the session cookie. Existing tokens are not replaced until the new record is verified. A fresh authorization is needed to inspect failures from deployments that previously swallowed exceptions; do not replay codes from logs or try to impersonate a visitor with injected identity headers. Full browser consent cannot be completed by service-only API probes.
+
+
+## Cloudflare transport compatibility
+
+The provider helper uses `redirect: 'manual'` and explicitly rejects every 3xx response without following it. Cloudflare Workers does not support `redirect: 'error'`; that option throws while constructing the outbound request, before Dexcom can return an HTTP status or OAuth error. The former catch labeled this local exception `provider_unavailable` (503) with `networkFailure: true`. This was a Worker runtime issue, not evidence of `invalid_client` or `invalid_grant`.
+
+The token request remains POST `https://sandbox-api.dexcom.com/v3/oauth2/token`, with `application/x-www-form-urlencoded` and `URLSearchParams` fields for the current client ID/secret, `authorization_code` grant, returned code and the same configured redirect URI used by login. Regression tests simulate the Workers redirect restriction, check these fields without printing them, and verify that credential-bearing requests never follow redirects. The same helper serves refresh and EGV calls.
+
+No credential or registered-callback change is indicated by this transport failure. Client-secret pairing with the developer application can only be verified when Dexcom actually processes a token request. A fresh browser authorization is required after deployment; do not replay previously returned codes. Only claim an end-to-end connection after logs show token exchange, encrypted session persistence and successful G7 EGV retrieval.
