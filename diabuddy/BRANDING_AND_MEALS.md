@@ -33,3 +33,7 @@ Loading, success/coverage, error and retry states are explicit. Editing input in
 Thirteen meal descriptions were rendered and checked, including all four requested examples, tofu/rice/mushrooms, beef tacos, lentil soup, banana/blueberry oats, spinach/cheese omelette, shrimp noodles, chicken curry, an unknown dish and a partial truffle-pasta illustration. Pixel comparisons verify changes to sauce, toppings and sides change artwork rather than only a label. The images above are actual Canvas renders, not browser screenshots.
 
 Full desktop/mobile CSS layout, real touch devices and screen-reader checks remain manual: browser control is unavailable in this environment. Before merging, review at 320/390/768/1440 px, use keyboard navigation, open PIN/modals, and share a meal while the pet walks to its table. Existing simulated location/app reminders remain simulated; this update adds no device monitoring. This branch does not publish or change the original Site, its audience, runtime secrets or the separate review Site.
+
+## Sunroom palette follow-up
+
+The review branch includes latest main `f541f80` and its parent guidance. UI backgrounds now use buttery yellow and light leaf green, with olive text and green action buttons. The original scene rendering, logo and arcade surfaces use coordinated warm green/yellow accents. Accent food, water and puzzle colors remain distinguishable. The shared contrast checks and full regression suite pass. The separate private preview is refreshed; main and the original published Site are not changed.
