@@ -31,3 +31,21 @@ Expired cookies and sessions are rejected. Explicit Disconnect deletes the sessi
 
 ## Build / checks
 Run `node scripts/build-worker.mjs` from the checkout after editing frontend or Worker source. Source assets remain in `dist/`; the build excludes `dist/server` and `dist/.openai` from embedding. No Node dependency or framework migration is required. OAuth tests use a mocked provider and R2 conditional-storage implementation. Browser consent with real credentials remains a manual acceptance check.
+
+## Per-Site origin configuration
+
+`DEXCOM_APP_ORIGIN` selects one exact trusted HTTPS deployment origin. The supported origins are the original `https://mellow-pixel-companion.delicatecurio4.chatgpt.site` and the current `https://diabuddy-arcade-review.delicatecurio4.chatgpt.site`. When omitted, the original origin remains the default for backward compatibility. An explicitly invalid/unknown origin fails closed. Requests to the other origin are rejected for that deployment; forwarded headers cannot change this check. There are no wildcard CORS permissions.
+
+The Worker uses the selected origin for request validation, the authorization redirect URI, the token exchange redirect URI and disconnect CSRF validation. Set the current Site's `DEXCOM_APP_ORIGIN` in Sites runtime settings, preserve the three existing Dexcom secrets, and republish to apply the runtime revision. It is a public configuration value, though it may be marked Secret in Sites.
+
+For the current domain, register this exact callback in the Dexcom Developer Portal:
+
+```
+https://diabuddy-arcade-review.delicatecurio4.chatgpt.site/api/auth/dexcom/callback
+```
+
+The former callback does not set cookies on the new host. Authorize again on the new Site; existing sessions do not migrate between Sites. Do not copy browser cookies or OAuth tokens. A rotated session encryption key also requires reauthorization.
+
+`/api/dexcom/configuration` reports only binding presence/format/storage checks and the public origin/callback. `/api/dexcom/status` still requires a signed-in Site visitor. A service bypass token grants platform access but does not impersonate a signed-in user, so a service-only status check may return `sign_in_required` (401). That is distinct from the former application-level `invalid_origin` (403).
+
+The backend implements actual server-side OAuth and refresh rotation against `https://sandbox-api.dexcom.com/v3/oauth2/login` and `/v3/oauth2/token`, then retrieves `/v3/users/self/egvs`. `simulated: true` labels Dexcom sandbox data; it does not mean the OAuth routes are mock functions. Completing authorization and retrieving readings still require browser consent and a registered callback matching the current origin.
