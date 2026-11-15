@@ -105,3 +105,9 @@ The `feat/diabuddy-branding-and-meals` update adds `theme.css` for the shared me
 Meal descriptions are parsed locally by `meal-ai.js`; `meal-art.js` draws reusable original components for both previews and pet feeding. There is no AI image generation endpoint or image-generation credential configured in this project. This replaces the former nearest-preset embedding matcher and model download with a finite, transparent English component library. Unsupported details remain named and visibly marked partial; unknown dishes show an explicitly generic plate. Manual simple illustrations are optional and labeled as choices, with the original description kept. No nutrition or insulin estimates are produced.
 
 See [the design and verification notes](BRANDING_AND_MEALS.md) for coverage and remaining browser/device checks.
+
+## Teal home and contextual illustrations
+
+See [TEAL_HOME_AND_EMOTES.md](TEAL_HOME_AND_EMOTES.md) for the restored teal palette, compact home layout, learning presentation, parent-only visual preferences and contextual sprite policy. Contextual poses require recent valid connected G7 data; demo fixtures never replace unavailable readings. They are not treatment instructions and do not affect rewards. Pump corrections remain unavailable without a verified read-only event adapter.
+
+Run `node scripts/render-contextual.cjs` for a synthetic-fixture montage from the actual renderer. Full browser/mobile home-layout QA remains manual before merge. This branch must not be merged or published without owner approval.
