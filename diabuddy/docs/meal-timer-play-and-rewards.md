@@ -1,6 +1,6 @@
 # Meal timer experience updates
 
-Branch `feat/meal-timer-play-and-rewards`, based on main `832f708` (PR #11). Repository audit: all submitted PRs #1–#11 are merged into main. The remaining unmerged remote refs are two review/preview branches and `feature/meal-calendar`, which has no submitted PR; this task does not merge those unpublished experiments.
+Branch `feat/meal-timer-play-and-rewards`, based on main `7932b90` (including PR #12 family onboarding and tutorial). Repository audit: all submitted PRs #1–#12 are merged into main. The remaining unmerged remote refs are two review/preview branches and `feature/meal-calendar`, which has no submitted PR; this task does not merge those unpublished experiments.
 
 ## Invitation, help and banner
 
@@ -8,13 +8,15 @@ A successful nonzero timer start opens the existing native dialog with “Want t
 
 The session's invitation flag is persisted with the timer before showing it, and tick/reload/navigation never show it again. Native dialog semantics provide focus containment. The dialog has a heading and description wired through ARIA, an initial focus target, Escape dismissal and sensible focus restoration. Queued native close events are handled so an old setup/invitation close cannot remove a newly opened dialog's accessible name or steal focus from the game chooser. Styling uses a centered, bounded, vertically scrollable dialog with a dimmed, blurred backdrop. No animation is needed; reduced-motion rules also suppress transitions.
 
-Parent / help now uses a scoped grid with readable type, wrapped guidance, separate care-plan and emergency sections, and aligned, wrapping actions. The call action and Back to my buddy become full-width rows on small screens. The native dialog can scroll on short screens. Saved guidance is escaped as text, and the optional phone link retains the existing parent-saved value. Help remains available in the global banner and invitation, including during games. The app does not send parent alerts.
+Parent / help now uses a scoped grid with readable type, wrapped guidance, separate care-plan and emergency sections, and aligned, wrapping actions. The call action and Back to my buddy become full-width rows on small screens. The native dialog can scroll on short screens. Saved guidance is escaped as text, and the optional phone link retains the existing parent-saved value. Help remains available in the global banner and invitation, including during games. The app does not send parent alerts. The newly merged family tutorial and onboarding/demo dialogs yield to low-glucose care; their overlays close so they cannot cover guidance or help. Their setup/tour entry points remain available.
 
 The banner is in normal document flow by default. Only `data-active="true"` enables sticky positioning; stop, low interruption and completion restore normal flow. The banner remains outside page/game content. Mobile active controls use three flexible columns; a measured height sets scroll padding for focused/scrolled content. Existing navigation is not moved or made sticky. The count updates without remounting its controls.
 
 ## Mock pump widget
 
 Home includes an original small SVG pump icon and **Demo — simulated pump data**, **MOCK t:slim · NOT CONNECTED**, and a sample “Meal bolus detected · 45 g carbs recorded.” The widget neither contacts a pump nor sends insulin commands, alters Dexcom readings, or produces glucose alerts. **Set meal timer** uses the same setup and start validation with source `demo`, the saved parent-fixed duration or child range, and the parent manual/demo permission. Unconfigured settings cannot be bypassed. Demo timers remain labeled in the banner/home card and are never consumed as real Tandem events or eligible for participation coins.
+
+The new main’s fictional family world has an additional isolation guard: it cannot offer real Tandem events or earn verified participation coins, even if an adapter becomes available. Its manual routine is labeled as demo; the banner explains that this world stays in memory and refresh returns to the saved world, preserving the onboarding feature’s storage isolation.
 
 ## Optional participation coins
 
@@ -32,7 +34,7 @@ Testing revealed that the old arcade pause hook retained an in-memory game after
 
 ## Checks and manual QA
 
-The repository's `npm test` builds the Worker and checks OAuth security/transport/storage, all mini-games, learning, family features, emotes and routines. Added model/full-app DOM/Canvas checks cover invitation choices, initial focus, Escape, once-only behavior over tick/reload, queued close events, timer continuity, Parent / help during play, demo labels and permissions, default-off reward settings, locked/stale parent forms, invalid amounts, confirmed-event filtering, duplicate delivery/notification/reload claims, retained earned coins, failed-save rollback, low-before-start and interruptions, and active/inactive banner states.
+The repository's `npm test` builds the Worker and checks OAuth security/transport/storage, all mini-games, learning, family features, emotes and routines. Added model/full-app DOM/Canvas checks cover invitation choices, initial focus, Escape, once-only behavior over tick/reload, queued close events, timer continuity, Parent / help during play, demo labels and permissions, default-off reward settings, locked/stale parent forms, invalid amounts, confirmed-event filtering, duplicate delivery/notification/reload claims, retained earned coins, failed-save rollback, low-before-start and interruptions, active/inactive banner states, the updated family tutorial’s low interruption and fictional-world reward isolation.
 
 Full browser tooling is unavailable in this environment. These checks do not establish desktop/mobile CSS geometry or actual screen-reader behavior. Before publishing, inspect 320/390/768/1440 px widths and a short landscape viewport: dialog centering and scroll, long multiline care guidance, call/close button wrapping, keyboard Tab containment and focus after each close path, reduced-motion settings, scrolling on Home and each mini-game, and banner return to normal after stop/completion/low interruption. Use real authorized Dexcom/Tandem connections for provider QA; no live clinical or token-exchange success is claimed here.
 

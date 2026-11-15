@@ -1,6 +1,6 @@
 # Waiting for Meal
 
-The original routine shipped in PR #11. The follow-up in `feat/meal-timer-play-and-rewards` builds on main `832f708`; see [timer experience updates](meal-timer-play-and-rewards.md). This is an optional, family-configured routine, not a recommendation to wait, dose advice, or permission to eat.
+The original routine shipped in PR #11. The follow-up in `feat/meal-timer-play-and-rewards` builds on main `7932b90`; see [timer experience updates](meal-timer-play-and-rewards.md). This is an optional, family-configured routine, not a recommendation to wait, dose advice, or permission to eat.
 
 ## Family controls
 

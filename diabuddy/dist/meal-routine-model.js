@@ -12,7 +12,7 @@ function eligibleEvent(e,used=[],now=Date.now()){
 }
 function validRewardSettings(s){return !!s&&typeof s.enabled==='boolean'&&Number.isInteger(s.amount)&&s.amount>=0&&s.amount<=1000;}
 // Called only at explicit Start, before consuming the adapter event. Glucose,
-// waiting duration, carb quantity and delivered dose are never reward inputs.
+// waiting duration, carb quantity and delivered dose never scale the reward amount.
 function rewardOnStart(settings,event,used,claims,source,now=Date.now()){
  if(!Array.isArray(claims)||source!=='tandem'||!validRewardSettings(settings)||!settings.enabled||settings.amount===0||!eligibleEvent(event,used,now))return null;
  const keys=eventKeys(event);return keys.some(k=>claims.includes(k))?null:{amount:settings.amount,keys};

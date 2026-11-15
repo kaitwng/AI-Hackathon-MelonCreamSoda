@@ -35,11 +35,12 @@ function help(){
  $('#care-close').onclick=()=>modal.close();
 }
 
-function event(){if(!root.DiaTandemReadOnly.available)return null;const events=root.DiaTandemReadOnly.events();return Array.isArray(events)?events.slice().reverse().find(e=>R.eligibleEvent(e,state.usedMealEvents))||null:null;}
+function event(){if(root.DiaFamilyDemoActive||!root.DiaTandemReadOnly.available)return null;const events=root.DiaTandemReadOnly.events();return Array.isArray(events)?events.slice().reverse().find(e=>R.eligibleEvent(e,state.usedMealEvents))||null:null;}
 function clearTimer(kind){state.timer=null;state.mealNotice={kind,at:Date.now()};persist();paintKey='';}
 function tick(now=Date.now()){
  if(state.timer&&!R.validTimer(state.timer))clearTimer('stopped');
  const g=glucoseState(now),action=R.transition(state.timer,g,now);
+ if(g.valid&&g.band==='low'){root.DiaFamilyTour?.stopForCare?.();root.DiaOnboarding?.stopForCare?.();root.DiaFamilyDemo?.stopForCare?.();}
  if(action==='interrupted'){
   clearTimer('interrupted');closePrompts();
   root.DiaArcade?.pauseForCare?.();toast('The waiting routine has stopped. Follow your family’s low-glucose care plan and ask a parent for help.');
@@ -58,13 +59,13 @@ function renderBanner(g,now){
  const host=$('#meal-routine-banner');if(!host)return;
  const low=g.valid&&g.band==='low',notice=state.mealNotice,t=state.timer;
  host.dataset.active=String(!!t);updateScrollOffset();
- const key=JSON.stringify([low,t?.id,t?R.seconds(t,now):null,notice?.kind,glucoseNote(g),storageProblem]);if(key===paintKey)return;paintKey=key;
+ const key=JSON.stringify([low,t?.id,t?R.seconds(t,now):null,notice?.kind,glucoseNote(g),storageProblem,!!root.DiaFamilyDemoActive]);if(key===paintKey)return;paintKey=key;
  // Keep the controls mounted while the numerals change, preserving keyboard focus.
- const structure=[low,t?.id,notice?.kind,glucoseNote(g),storageProblem].join('|');
+ const structure=[low,t?.id,notice?.kind,glucoseNote(g),storageProblem,!!root.DiaFamilyDemoActive].join('|');
  if(host.dataset.structure===structure&&t){const readout=host.querySelector('[data-countdown]');if(readout)readout.textContent=format(R.seconds(t,now));return;}
  host.dataset.structure=structure;
  host.className='meal-routine-banner'+(low?' meal-care-priority':'');
- host.innerHTML=`<div class="meal-banner-copy"><strong>${t?.source==='demo'?'DEMO · ':''}${low?'Your reading is in your family’s low range':t?'Your family meal routine':notice?.kind==='finished'?'Your timer has finished.':notice?.kind==='interrupted'?'Waiting routine interrupted':'Your family, your pace'}</strong>${t?`<span class="meal-countdown" data-countdown role="timer" aria-label="Time remaining" aria-live="off">${format(R.seconds(t,now))}</span>`:''}<p>${low?'Follow your family’s low-glucose care plan now. Ask a parent for help. Waiting prompts are off.':t?'Games are optional. You can eat or get help at any time.':notice?.kind==='interrupted'?'It will not restart automatically. Follow your family’s care plan.':notice?.kind==='finished'?'This is a routine reminder, not medical clearance to eat.':'No timer or game is required before eating or getting help.'}</p><small>${escapeHTML(glucoseNote(g))}</small>${storageProblem?'<p role="status">Browser storage is unavailable. This timer cannot be relied on after refresh. Stop the routine or keep your own timer.</p>':''}</div><div class="meal-banner-actions">${t?'<button class="secondary" id="routine-games">Optional games</button><button class="secondary" id="routine-stop">Stop routine</button>':''}<button class="secondary" id="routine-help">Parent / help</button>${!low&&!t&&notice?'<button class="text-link" id="routine-dismiss">Dismiss</button>':''}</div>`;
+ host.innerHTML=`<div class="meal-banner-copy"><strong>${t?.source==='demo'?'DEMO · ':''}${low?'Your reading is in your family’s low range':t?'Your family meal routine':notice?.kind==='finished'?'Your timer has finished.':notice?.kind==='interrupted'?'Waiting routine interrupted':'Your family, your pace'}</strong>${t?`<span class="meal-countdown" data-countdown role="timer" aria-label="Time remaining" aria-live="off">${format(R.seconds(t,now))}</span>`:''}<p>${low?'Follow your family’s low-glucose care plan now. Ask a parent for help. Waiting prompts are off.':t?'Games are optional. You can eat or get help at any time.':notice?.kind==='interrupted'?'It will not restart automatically. Follow your family’s care plan.':notice?.kind==='finished'?'This is a routine reminder, not medical clearance to eat.':'No timer or game is required before eating or getting help.'}</p><small>${escapeHTML(glucoseNote(g))}</small>${root.DiaFamilyDemoActive?'<small>Fictional family demo · Timer changes stay in memory. Refresh returns to your saved world.</small>':''}${storageProblem?'<p role="status">Browser storage is unavailable. This timer cannot be relied on after refresh. Stop the routine or keep your own timer.</p>':''}</div><div class="meal-banner-actions">${t?'<button class="secondary" id="routine-games">Optional games</button><button class="secondary" id="routine-stop">Stop routine</button>':''}<button class="secondary" id="routine-help">Parent / help</button>${!low&&!t&&notice?'<button class="text-link" id="routine-dismiss">Dismiss</button>':''}</div>`;
  if($('#routine-stop'))$('#routine-stop').onclick=stop;
  if($('#routine-games'))$('#routine-games').onclick=openGames;
  $('#routine-help').onclick=help;
@@ -87,6 +88,7 @@ function renderHome(g=glucoseState()){
 }
 function demoWidget(){return `<section class="demo-pump-widget" aria-labelledby="demo-pump-title"><div class="demo-pump-top"><svg class="demo-pump-icon" viewBox="0 0 32 40" aria-hidden="true" shape-rendering="crispEdges"><path fill="#315c64" d="M6 1h20v3h3v32h-3v3H6v-3H3V4h3z"/><path fill="#8ebeb1" d="M6 5h20v22H6z"/><path fill="#edf8f1" d="M9 8h14v16H9z"/><path fill="#417b77" d="M11 11h2v8h-2zm4 4h2v4h-2zm4-5h2v9h-2z"/><path fill="#d8d4ae" d="M12 30h8v4h-8z"/></svg><div><div class="eyebrow">MOCK t:slim · NOT CONNECTED</div><h3 id="demo-pump-title">Demo — simulated pump data</h3></div></div><p class="demo-pump-event">Meal bolus detected · 45 g carbs recorded</p><p>This sample is not a real pump event. No insulin is delivered, no glucose alerts are simulated, and no coins are earned.</p><button class="secondary" id="demo-pump-timer">Set meal timer</button><small>Uses your parent’s saved duration settings and manual/demo permission.</small></section>`;}
 function offer(source='manual'){
+ if(root.DiaFamilyDemoActive&&source==='manual')source='demo';
  tick();if(state.timer)return toast('A routine is already running. You can stop it at any time.');
  if(glucoseState().valid&&glucoseState().band==='low')return help();
  const p=policy(),ev=source==='tandem'?event():null;
@@ -101,9 +103,9 @@ function offer(source='manual'){
   if(state.timer||!$('#meal-start-dialog'))return;
   const now=Date.now(),g=glucoseState(now),value=input?Number(input.value):minutes;
   if(g.valid&&g.band==='low'){modal.close();tick(now);help();return;}
-  if(state.timer||revision!==JSON.stringify(policy())||input&&input.value.trim()===''||!R.canStart(policy(),value,source)||source==='tandem'&&(!root.DiaTandemReadOnly.available||!R.eligibleEvent(ev,state.usedMealEvents,now))){$('#routine-start-error').textContent='Settings, permissions, or the event changed. Close this preview and review the routine again.';return;}
+  if(state.timer||revision!==JSON.stringify(policy())||input&&input.value.trim()===''||!R.canStart(policy(),value,source)||source==='tandem'&&(root.DiaFamilyDemoActive||!root.DiaTandemReadOnly.available||!R.eligibleEvent(ev,state.usedMealEvents,now))){$('#routine-start-error').textContent='Settings, permissions, or the event changed. Close this preview and review the routine again.';return;}
   const previousNotice=state.mealNotice,previousUsed=state.usedMealEvents.slice(),previousCoins=state.coins,previousClaims=state.mealRewardClaims.slice();
-  const reward=R.rewardOnStart(state.mealRewardSettings,ev,state.usedMealEvents,state.mealRewardClaims,source,now);
+  const reward=root.DiaFamilyDemoActive?null:R.rewardOnStart(state.mealRewardSettings,ev,state.usedMealEvents,state.mealRewardClaims,source,now);
   state.timer={version:2,id:crypto.randomUUID(),source,eventId:ev?.id||null,minutes:value,startedAt:now,end:now+value*60000,invitationShown:true,rewardCoins:reward?.amount||0};state.mealNotice=null;
   if(ev)state.usedMealEvents.push(...R.eventKeys(ev));
   if(reward){state.coins+=reward.amount;state.mealRewardClaims.push(...reward.keys);}
