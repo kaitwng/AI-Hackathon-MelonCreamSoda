@@ -80,3 +80,19 @@ The parent portal no longer offers meal and reminder schedule settings; previous
 Routine support is not medical advice or emergency monitoring. If help is needed, contact a trusted adult directly and follow the existing care plan.
 
 Run the routine model checks with `node tests/routine.test.cjs`.
+
+## Cozy arcade redesign
+
+The games now live under `dist/arcade/`: shared progress/scoring (`core.js`), separate game models and authored chapters (`block.js`, `bridge.js`, `sort.js`), integer-grid pixel artwork (`art.js`), and shared screens/controls (`ui.js`). They reuse the existing companion and equipment renderer.
+
+Each game has four chapters. Stars, best scores, chapter unlocks and daily reward claims persist in the existing browser-local state. Completion earns 10–20 coins according to performance stars, once per chapter per local calendar day. Replays can improve best scores without duplicating rewards. No medical input participates in gameplay or scoring.
+
+The frontend still needs no install. For development-only model, DOM and native Canvas tests, run from `diabuddy/` with Node.js 22+:
+
+```sh
+npm ci
+npm test
+npm run art:arcade
+```
+
+The last command renders gameplay to ignored `test-results/` PNGs. See [ARCADE_DESIGN.md](ARCADE_DESIGN.md) for mechanics, controls, validation and verification limits. GitHub commits do not deploy the live Site automatically.
